@@ -21,8 +21,6 @@ FROM alpine:latest
 
 RUN apk add --no-cache bash
 
-ENV PORT 8000
-
 COPY --from=builder /build/tmp/hello-service /
 EXPOSE 8000
 

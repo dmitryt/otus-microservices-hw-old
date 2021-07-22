@@ -6,9 +6,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/gorilla/mux"
-
 	"github.com/dmitryt/otus-microservices-hw/hw01_k8s_1/internal/config"
+	"github.com/gorilla/mux"
 )
 
 func healthHandler(w http.ResponseWriter, r *http.Request) {
