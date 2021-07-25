@@ -1,4 +1,4 @@
-module github.com/dmitryt/otus-microservices-hw/hw01_k8s_1
+module github.com/dmitryt/otus-microservices-hw/hw01_k8s
 
 go 1.16
 
