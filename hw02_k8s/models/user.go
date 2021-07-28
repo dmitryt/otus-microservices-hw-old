@@ -1,77 +1,98 @@
 package models
 
 import (
-	"errors"
-	"strconv"
-	"time"
-)
+	"encoding/json"
+	"log"
 
-var (
-	UserList map[string]*User
+	"github.com/beego/beego/v2/client/orm"
+	"github.com/beego/beego/v2/core/validation"
+	"github.com/dmitryt/otus-microservices-hw/hw02_k8s/utils"
 )
 
 func init() {
-	UserList = make(map[string]*User)
-	u := User{"user_11111", "astaxie", "11111", Profile{"male", 20, "Singapore", "astaxie@gmail.com"}}
-	UserList["user_11111"] = &u
+	orm.RegisterModel(new(User))
+	if err := validation.AddCustomFunc("OptionalEmail", utils.OptionalEmail); err != nil {
+		log.Fatal("Cannot register 'Email' validator")
+	}
+	if err := validation.AddCustomFunc("OptionalPhone", utils.OptionalPhone); err != nil {
+		log.Fatal("Cannot register 'Phone' validator")
+	}
 }
 
 type User struct {
-	Id       string
-	Username string
-	Password string
-	Profile  Profile
+	ID        int64  `orm:"unique;column(id)" json:"id"`
+	Username  string `valid:"Required; MaxSize(256)" orm:"unique" json:"username"`
+	FirstName string `json:"firstName,omitempty"`
+	LastName  string `json:"lastName,omitempty"`
+	Email     string `valid:"OptionalEmail" json:"email,omitempty"`
+	Phone     string `valid:"OptionalPhone" json:"phone,omitempty"`
 }
 
-type Profile struct {
-	Gender  string
-	Age     int
-	Address string
-	Email   string
+func (u *User) TableName() string {
+	// db table name
+	return "users"
 }
 
-func AddUser(u User) string {
-	u.Id = "user_" + strconv.FormatInt(time.Now().UnixNano(), 10)
-	UserList[u.Id] = &u
-	return u.Id
-}
-
-func GetUser(uid string) (u *User, err error) {
-	if u, ok := UserList[uid]; ok {
-		return u, nil
+func AddUser(input []byte) (u *User, err error) {
+	var parsedUser User
+	err = json.Unmarshal(input, &parsedUser)
+	if err != nil {
+		return
 	}
-	return nil, errors.New("User not exists")
-}
-
-func GetAllUsers() map[string]*User {
-	return UserList
-}
-
-func UpdateUser(uid string, uu *User) (a *User, err error) {
-	if u, ok := UserList[uid]; ok {
-		if uu.Username != "" {
-			u.Username = uu.Username
-		}
-		if uu.Password != "" {
-			u.Password = uu.Password
-		}
-		if uu.Profile.Age != 0 {
-			u.Profile.Age = uu.Profile.Age
-		}
-		if uu.Profile.Address != "" {
-			u.Profile.Address = uu.Profile.Address
-		}
-		if uu.Profile.Gender != "" {
-			u.Profile.Gender = uu.Profile.Gender
-		}
-		if uu.Profile.Email != "" {
-			u.Profile.Email = uu.Profile.Email
-		}
-		return u, nil
+	o := orm.NewOrm()
+	id, err := o.Insert(&parsedUser)
+	if err != nil {
+		return
 	}
-	return nil, errors.New("User Not Exist")
+	u = &User{ID: id}
+	err = o.Read(u)
+
+	return
 }
 
-func DeleteUser(uid string) {
-	delete(UserList, uid)
+func GetUser(uid int64) (u User, err error) {
+	o := orm.NewOrm()
+	u.ID = uid
+	err = o.Read(&u)
+
+	return
+}
+
+func GetAllUsers() (users []User, err error) {
+	o := orm.NewOrm()
+	_, err = o.QueryTable(new(User)).All(&users)
+
+	return
+}
+
+func UpdateUser(uid int64, input []byte) (u *User, err error) {
+	var parsedUser User
+	if err = json.Unmarshal(input, &parsedUser); err != nil {
+		return
+	}
+	o := orm.NewOrm()
+	if err = o.Read(&User{ID: uid}); err != nil {
+		return
+	}
+	parsedUser.ID = uid
+	valid := validation.Validation{}
+	var isValid bool
+	if isValid, err = valid.Valid(&parsedUser); err != nil {
+		return
+	}
+	if !isValid {
+		err = valid.Errors[0]
+
+		return
+	}
+	_, err = o.Update(&parsedUser)
+
+	return &parsedUser, err
+}
+
+func DeleteUser(uid int64) (err error) {
+	o := orm.NewOrm()
+	_, err = o.Delete(&User{ID: uid})
+
+	return
 }

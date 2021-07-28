@@ -12,8 +12,7 @@ WORKDIR /build
 RUN go get 'github.com/pressly/goose/cmd/goose'
 
 # mount the app
-RUN mkdir -p /opt/db
-COPY ./migrations /opt/db/migrations
+COPY ./migrations migrations
 
 # define goose as the entrypoint
-ENTRYPOINT /go/bin/goose -v -dir /opt/db/migrations postgres "host=$DB_HOST port=$DB_PORT user=$DB_USER password=$DB_PASSWORD dbname=$DB_NAME sslmode=disable" up
+ENTRYPOINT echo "Running migrations..." && sleep 10 && goose -v -dir migrations postgres "host=db user=admin password=pass dbname=hw02_k8s_db sslmode=disable" up

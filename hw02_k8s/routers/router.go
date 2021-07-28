@@ -8,14 +8,13 @@
 package routers
 
 import (
-	"github.com/dmitryt/otus-microservices-hw/hw02_k8s/controllers"
-
 	beego "github.com/beego/beego/v2/server/web"
+	"github.com/dmitryt/otus-microservices-hw/hw02_k8s/controllers"
 )
 
 func init() {
 	ns := beego.NewNamespace("/api/v1",
-		beego.NSNamespace("/user",
+		beego.NSNamespace("/users",
 			beego.NSInclude(
 				&controllers.UserController{},
 			),

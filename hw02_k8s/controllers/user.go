@@ -1,15 +1,50 @@
 package controllers
 
 import (
-	"encoding/json"
-	"github.com/dmitryt/otus-microservices-hw/hw02_k8s/models"
+	"errors"
+	"net/http"
+	"strconv"
 
+	"github.com/beego/beego/v2/client/orm"
+	"github.com/beego/beego/v2/core/logs"
+	"github.com/beego/beego/v2/core/validation"
 	beego "github.com/beego/beego/v2/server/web"
+	"github.com/dmitryt/otus-microservices-hw/hw02_k8s/models"
 )
 
-// Operations about Users
+// Operations about Users.
 type UserController struct {
 	beego.Controller
+}
+
+func prepareError(err error) (result *Response) {
+	var code int
+	var message string
+	switch err.(type) {
+	case *strconv.NumError:
+		code = http.StatusBadRequest
+	case *validation.Error:
+		code = http.StatusBadRequest
+		message = err.Error()
+	default:
+		if errors.Is(err, orm.ErrNoRows) {
+			code = http.StatusNotFound
+		} else {
+			code = http.StatusBadGateway
+		}
+	}
+	logs.Info("Response ERR", err, errors.Is(err, &validation.Error{}))
+
+	if message == "" {
+		return NewResponseWithDefaultMessage(code)
+	}
+
+	return NewResponse(code, message)
+}
+
+func (u *UserController) sendResponse(r interface{}) {
+	u.Data["json"] = r
+	_ = u.ServeJSON()
 }
 
 // @Title CreateUser
@@ -17,23 +52,29 @@ type UserController struct {
 // @Param	body		body 	models.User	true		"body for user content"
 // @Success 200 {int} models.User.Id
 // @Failure 403 body is empty
-// @router / [post]
+// @router / [post].
 func (u *UserController) Post() {
-	var user models.User
-	json.Unmarshal(u.Ctx.Input.RequestBody, &user)
-	uid := models.AddUser(user)
-	u.Data["json"] = map[string]string{"uid": uid}
-	u.ServeJSON()
+	user, err := models.AddUser(u.Ctx.Input.RequestBody)
+	if err != nil {
+		u.sendResponse(prepareError(err))
+
+		return
+	}
+	u.sendResponse(user)
 }
 
 // @Title GetAll
 // @Description get all Users
 // @Success 200 {object} models.User
-// @router / [get]
+// @router / [get].
 func (u *UserController) GetAll() {
-	users := models.GetAllUsers()
-	u.Data["json"] = users
-	u.ServeJSON()
+	users, err := models.GetAllUsers()
+	if err != nil {
+		u.sendResponse(prepareError(err))
+
+		return
+	}
+	u.sendResponse(users)
 }
 
 // @Title Get
@@ -41,18 +82,21 @@ func (u *UserController) GetAll() {
 // @Param	uid		path 	string	true		"The key for staticblock"
 // @Success 200 {object} models.User
 // @Failure 403 :uid is empty
-// @router /:uid [get]
+// @router /:uid [get].
 func (u *UserController) Get() {
-	uid := u.GetString(":uid")
-	if uid != "" {
-		user, err := models.GetUser(uid)
-		if err != nil {
-			u.Data["json"] = err.Error()
-		} else {
-			u.Data["json"] = user
-		}
+	uid, err := u.GetInt64(":uid")
+	if err != nil {
+		u.sendResponse(prepareError(err))
+
+		return
 	}
-	u.ServeJSON()
+	user, err := models.GetUser(uid)
+	if err != nil {
+		u.sendResponse(prepareError(err))
+
+		return
+	}
+	u.sendResponse(user)
 }
 
 // @Title Update
@@ -61,20 +105,21 @@ func (u *UserController) Get() {
 // @Param	body		body 	models.User	true		"body for user content"
 // @Success 200 {object} models.User
 // @Failure 403 :uid is not int
-// @router /:uid [put]
+// @router /:uid [put].
 func (u *UserController) Put() {
-	uid := u.GetString(":uid")
-	if uid != "" {
-		var user models.User
-		json.Unmarshal(u.Ctx.Input.RequestBody, &user)
-		uu, err := models.UpdateUser(uid, &user)
-		if err != nil {
-			u.Data["json"] = err.Error()
-		} else {
-			u.Data["json"] = uu
-		}
+	uid, err := u.GetInt64(":uid")
+	if err != nil {
+		u.sendResponse(prepareError(err))
+
+		return
 	}
-	u.ServeJSON()
+	user, err := models.UpdateUser(uid, u.Ctx.Input.RequestBody)
+	if err != nil {
+		u.sendResponse(prepareError(err))
+
+		return
+	}
+	u.sendResponse(user)
 }
 
 // @Title Delete
@@ -82,10 +127,25 @@ func (u *UserController) Put() {
 // @Param	uid		path 	string	true		"The uid you want to delete"
 // @Success 200 {string} delete success!
 // @Failure 403 uid is empty
-// @router /:uid [delete]
+// @router /:uid [delete].
 func (u *UserController) Delete() {
-	uid := u.GetString(":uid")
-	models.DeleteUser(uid)
-	u.Data["json"] = "delete success!"
-	u.ServeJSON()
+	uid, err := u.GetInt64(":uid")
+	if err != nil {
+		u.sendResponse(prepareError(err))
+
+		return
+	}
+	_, err = models.GetUser(uid)
+	if err != nil {
+		u.sendResponse(prepareError(err))
+
+		return
+	}
+	err = models.DeleteUser(uid)
+	if err != nil {
+		u.sendResponse(prepareError(err))
+
+		return
+	}
+	u.sendResponse(NewResponseWithDefaultMessage(http.StatusNoContent))
 }

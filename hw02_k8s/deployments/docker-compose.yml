@@ -3,12 +3,18 @@ version: "2.4"
 services:
   db:
     image: postgres:13.3-alpine
-    env_file:
-      - database.env
+    environment:
+      - PGUSER=$DB_USER
+      - POSTGRES_USER=$DB_USER
+      - POSTGRES_PASSWORD=$DB_PASS
+      - POSTGRES_DB=$DB_NAME
+      - PGDATABASE=$DB_NAME
     ports:
-      - "5432:5432"
+      - "5433:5432"
+    volumes:
+      - ./.pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "$POSTGRES_USER"]
+      test: ["CMD", "pg_isready"]
       interval: 10s
       timeout: 10s
       retries: 3
@@ -18,7 +24,11 @@ services:
       context: ./
       dockerfile: ./migrator/Dockerfile
     env_file:
-      - database.env
+      - ./database.env
     depends_on:
       db:
         condition: service_healthy
+  tester:
+    image: golang:1.16-alpine
+    entrypoint: >
+      sleep 10000

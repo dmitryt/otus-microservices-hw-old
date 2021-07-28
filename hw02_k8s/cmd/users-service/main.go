@@ -4,21 +4,28 @@ import (
 	"log"
 
 	"github.com/beego/beego/v2/client/orm"
+	beego "github.com/beego/beego/v2/server/web"
 	"github.com/dmitryt/otus-microservices-hw/hw02_k8s/controllers"
 	_ "github.com/dmitryt/otus-microservices-hw/hw02_k8s/routers"
 	"github.com/dmitryt/otus-microservices-hw/hw02_k8s/utils"
 	_ "github.com/lib/pq"
-
-	beego "github.com/beego/beego/v2/server/web"
 )
 
 func init() {
-	orm.RegisterDriver("postgres", orm.DRPostgres)
+	orm.Debug = true
+
+	err := orm.RegisterDriver("postgres", orm.DRPostgres)
+	if err != nil {
+		log.Fatal("Error during registering the DB driver", err)
+	}
 	sdn, err := utils.GetSQLDSN()
-	if (err != nil) {
+	if err != nil {
 		log.Fatal("DB config is invalid", err)
 	}
-	orm.RegisterDataBase("default", "postgres", sdn)
+	err = orm.RegisterDataBase("default", "postgres", sdn)
+	if err != nil {
+		log.Fatal("Error during registering the default DB", err)
+	}
 }
 
 func main() {
