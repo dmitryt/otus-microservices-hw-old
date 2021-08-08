@@ -9,6 +9,7 @@ package routers
 
 import (
 	beego "github.com/beego/beego/v2/server/web"
+	"github.com/beego/beego/v2/server/web/context"
 	"github.com/dmitryt/otus-microservices-hw/hw02_k8s/controllers"
 )
 
@@ -19,6 +20,9 @@ func init() {
 				&controllers.UserController{},
 			),
 		),
+		beego.NSGet("/health", func(ctx *context.Context) {
+			ctx.Output.JSON(map[string]string{"status": "OK"}, false, false)
+		}),
 	)
 	beego.AddNamespace(ns)
 }

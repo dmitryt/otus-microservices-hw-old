@@ -21,7 +21,7 @@ func init() {
 
 type User struct {
 	ID        int64  `orm:"unique;column(id)" json:"id"`
-	Username  string `valid:"Required; MaxSize(256)" orm:"unique" json:"username"`
+	Username  string `valid:"MaxSize(256); MinSize(3)" orm:"unique" json:"username"`
 	FirstName string `json:"firstName,omitempty"`
 	LastName  string `json:"lastName,omitempty"`
 	Email     string `valid:"OptionalEmail" json:"email,omitempty"`

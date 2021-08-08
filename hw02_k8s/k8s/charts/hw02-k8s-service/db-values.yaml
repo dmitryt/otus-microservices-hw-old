@@ -1,0 +1,4 @@
+fullnameOverride: postgres
+postgresqlUsername: postgres
+postgresqlPassword: pass
+postgresqlDatabase: hw02_k8s_db

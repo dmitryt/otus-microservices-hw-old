@@ -28,7 +28,3 @@ services:
     depends_on:
       db:
         condition: service_healthy
-  tester:
-    image: golang:1.16-alpine
-    entrypoint: >
-      sleep 10000

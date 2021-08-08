@@ -1,0 +1,19 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: migrator
+  labels:
+    {{- include "users-service.labels" . | nindent 4 }}
+spec:
+  template:
+    spec:
+      containers:
+      - name: migrator
+        image: greml1n/otus-microservices-hw02-migrator:v0.0.1
+        env:
+            {{- range $k, $v := .Values.env }}
+            - name: {{ $k }}
+              value: {{ $v | quote }}
+            {{- end }}
+      restartPolicy: Never
+  backoffLimit: 4

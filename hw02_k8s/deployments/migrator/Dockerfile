@@ -15,4 +15,4 @@ RUN go get 'github.com/pressly/goose/cmd/goose'
 COPY ./migrations migrations
 
 # define goose as the entrypoint
-ENTRYPOINT echo "Running migrations..." && sleep 10 && goose -v -dir migrations postgres "host=db user=admin password=pass dbname=hw02_k8s_db sslmode=disable" up
+ENTRYPOINT echo "Running migrations..." && goose -v -dir migrations postgres "host=${DB_HOST} user=${DB_USER} password=${DB_PASS} dbname=${DB_NAME} sslmode=disable" up
