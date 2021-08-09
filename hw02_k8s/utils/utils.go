@@ -2,11 +2,14 @@ package utils
 
 import (
 	"fmt"
+	"regexp"
 
-	"github.com/beego/beego/v2/core/validation"
 	beego "github.com/beego/beego/v2/server/web"
+	"github.com/go-playground/validator/v10"
 	"github.com/mitchellh/mapstructure"
 )
+
+var PHONE_REGEXP = regexp.MustCompile(`^(?:(?:\(?(?:00|\+)([1-4]\d\d|[1-9]\d?)\)?)?[\-\.\ \\\/]?)?((?:\(?\d{1,}\)?[\-\.\ \\\/]?){0,})(?:[\-\.\ \\\/]?(?:#|ext\.?|extension|x)[\-\.\ \\\/]?(\d+))?$`)
 
 type DBConfig struct {
 	Host string `mapstructure:"dbhost"`
@@ -37,30 +40,6 @@ func GetSQLDSN() (cfg string, err error) {
 	return
 }
 
-func OptionalEmail(v *validation.Validation, obj interface{}, key string) {
-	name, ok := obj.(string)
-	if !ok {
-		return
-	}
-
-	// valid true
-	if len(name) == 0 {
-		return
-	}
-
-	v.Email(obj, key)
-}
-
-func OptionalPhone(v *validation.Validation, obj interface{}, key string) {
-	name, ok := obj.(string)
-	if !ok {
-		return
-	}
-
-	// valid true
-	if len(name) == 0 {
-		return
-	}
-
-	v.Phone(obj, key)
+func ValidatePhone(fl validator.FieldLevel) bool {
+	return PHONE_REGEXP.MatchString(fl.Field().String())
 }

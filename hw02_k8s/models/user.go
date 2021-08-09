@@ -2,30 +2,27 @@ package models
 
 import (
 	"encoding/json"
-	"log"
 
 	"github.com/beego/beego/v2/client/orm"
-	"github.com/beego/beego/v2/core/validation"
 	"github.com/dmitryt/otus-microservices-hw/hw02_k8s/utils"
+	"github.com/go-playground/validator/v10"
 )
+
+var validate *validator.Validate
 
 func init() {
 	orm.RegisterModel(new(User))
-	if err := validation.AddCustomFunc("OptionalEmail", utils.OptionalEmail); err != nil {
-		log.Fatal("Cannot register 'Email' validator")
-	}
-	if err := validation.AddCustomFunc("OptionalPhone", utils.OptionalPhone); err != nil {
-		log.Fatal("Cannot register 'Phone' validator")
-	}
+	validate = validator.New()
+	validate.RegisterValidation("phone", utils.ValidatePhone)
 }
 
 type User struct {
 	ID        int64  `orm:"unique;column(id)" json:"id"`
-	Username  string `valid:"MaxSize(256); MinSize(3)" orm:"unique" json:"username"`
+	Username  string `validate:"required" json:"username"`
 	FirstName string `json:"firstName,omitempty"`
 	LastName  string `json:"lastName,omitempty"`
-	Email     string `valid:"OptionalEmail" json:"email,omitempty"`
-	Phone     string `valid:"OptionalPhone" json:"phone,omitempty"`
+	Email     string `validate:"email" json:"email,omitempty"`
+	Phone     string `validate:"phone" json:"phone,omitempty"`
 }
 
 func (u *User) TableName() string {
@@ -36,6 +33,10 @@ func (u *User) TableName() string {
 func AddUser(input []byte) (u *User, err error) {
 	var parsedUser User
 	err = json.Unmarshal(input, &parsedUser)
+	if err != nil {
+		return
+	}
+	err = validate.Struct(parsedUser)
 	if err != nil {
 		return
 	}
@@ -70,21 +71,15 @@ func UpdateUser(uid int64, input []byte) (u *User, err error) {
 	if err = json.Unmarshal(input, &parsedUser); err != nil {
 		return
 	}
+	err = validate.Struct(parsedUser)
+	if err != nil {
+		return
+	}
 	o := orm.NewOrm()
 	if err = o.Read(&User{ID: uid}); err != nil {
 		return
 	}
 	parsedUser.ID = uid
-	valid := validation.Validation{}
-	var isValid bool
-	if isValid, err = valid.Valid(&parsedUser); err != nil {
-		return
-	}
-	if !isValid {
-		err = valid.Errors[0]
-
-		return
-	}
 	_, err = o.Update(&parsedUser)
 
 	return &parsedUser, err

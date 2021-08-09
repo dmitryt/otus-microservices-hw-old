@@ -7,9 +7,10 @@ import (
 
 	"github.com/beego/beego/v2/client/orm"
 	"github.com/beego/beego/v2/core/logs"
-	"github.com/beego/beego/v2/core/validation"
 	beego "github.com/beego/beego/v2/server/web"
 	"github.com/dmitryt/otus-microservices-hw/hw02_k8s/models"
+	"github.com/go-playground/validator/v10"
+	"github.com/lib/pq"
 )
 
 // Operations about Users.
@@ -23,9 +24,15 @@ func prepareError(err error) (result *Response) {
 	switch err.(type) {
 	case *strconv.NumError:
 		code = http.StatusBadRequest
-	case *validation.Error:
+	case validator.ValidationErrors:
 		code = http.StatusBadRequest
 		message = err.Error()
+	case *pq.Error:
+		code = http.StatusBadRequest
+		pqErr, _ := err.(*pq.Error)
+		if pqErr.Constraint != "" {
+			message = pqErr.Detail
+		}
 	default:
 		if errors.Is(err, orm.ErrNoRows) {
 			code = http.StatusNotFound
@@ -33,7 +40,7 @@ func prepareError(err error) (result *Response) {
 			code = http.StatusBadGateway
 		}
 	}
-	logs.Info("Response ERR", err, errors.Is(err, &validation.Error{}))
+	logs.Info("Response ERR", err)
 
 	if message == "" {
 		return NewResponseWithDefaultMessage(code)
