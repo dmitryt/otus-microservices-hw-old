@@ -10,10 +10,10 @@ spec:
       containers:
       - name: migrator
         image: greml1n/otus-microservices-hw02-migrator:v0.0.1
-        env:
-            {{- range $k, $v := .Values.env }}
-            - name: {{ $k }}
-              value: {{ $v | quote }}
-            {{- end }}
+        envFrom:
+          - configMapRef:
+              name: {{.Values.config.env}}
+          - secretRef:
+              name: {{.Values.config.secrets}}
       restartPolicy: Never
   backoffLimit: 4

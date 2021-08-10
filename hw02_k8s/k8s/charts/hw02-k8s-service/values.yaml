@@ -82,10 +82,15 @@ tolerations: []
 
 affinity: {}
 
+config:
+  env: 'app-config'
+  secrets: 'app-secrets'
+
 env:
   PORT: 8000
   DB_NAME: hw02_k8s_db
   DB_HOST: postgres
   DB_PORT: 5432
+secrets:
   DB_USER: postgres
   DB_PASS: pass

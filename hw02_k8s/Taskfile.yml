@@ -7,8 +7,7 @@ vars:
   PROJECT_NAME: hw02-k8s-service
   PACKAGE_NAME: greml1n/otus-microservices-hw02
   VERSION: v0.0.1
-  DEPLOYMENTS_DIR: deployments
-  MIGRATOR_DOCKERFILE: migrator/Dockerfile
+  MIGRATOR_DIR: migrator
   MIGRATOR_PACKAGE_NAME: greml1n/otus-microservices-hw02-migrator
   MIGRATOR_VERSION: v0.0.1
 
@@ -42,7 +41,7 @@ tasks:
     dir: "{{.MIGRATOR_DIR}}"
     desc: Push docker migrator package
     cmds:
-      - HELLO=world && docker build -t "{{.MIGRATOR_PACKAGE_NAME}}:{{.MIGRATOR_VERSION}}" -t "{{.MIGRATOR_PACKAGE_NAME}}:latest" -f {{.DEPLOYMENTS_DIR}}/{{.MIGRATOR_DOCKERFILE}} {{.DEPLOYMENTS_DIR}}
+      - HELLO=world && docker build -t "{{.MIGRATOR_PACKAGE_NAME}}:{{.MIGRATOR_VERSION}}" -t "{{.MIGRATOR_PACKAGE_NAME}}:latest" -f {{.MIGRATOR_DIR}}/Dockerfile {{.MIGRATOR_DIR}}
       # - docker push -a "{{.PACKAGE_NAME}}"
 
   helm:install:
