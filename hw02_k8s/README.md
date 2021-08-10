@@ -15,22 +15,22 @@ chmod +x hw02-k8s-service.sh
 ```
 2. Install the Database
 ```bash
-hw02-k8s-service.sh installDB
+./hw02-k8s-service.sh installDB
 ```
 3. Run the application(it can ask for admin permissions, because it updates `/etc/hosts` file).
    <br/> When application starts, migration Job starts automatically as well and executes migrations, if it's needed.
 ```bash
-hw02-k8s-service.sh start
+./hw02-k8s-service.sh start
 ```
 4. Run tests (It's supposed, Newman is installed on your machine.)
 ```bash
-hw02-k8s-service.sh test
+./hw02-k8s-service.sh test
 ```
 5. Stop application. It will update `/etc/hosts` file
 ```bash
-hw02-k8s-service.sh stop
+./hw02-k8s-service.sh stop
 ```
 6. Uninstall database
 ```bash
-hw02-k8s-service.sh dropDB
+./hw02-k8s-service.sh dropDB
 ```
