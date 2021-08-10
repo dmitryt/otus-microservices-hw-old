@@ -2,7 +2,6 @@
 
 RELEASE_NAME="prod"
 PG_RELEASE_NAME="pg"
-TESTS_PATH="pg"
 CHART_DIR="k8s/charts/hw02-k8s-service"
 TESTS_FILE_PATH="Users_API.postman_collection.json"
 
