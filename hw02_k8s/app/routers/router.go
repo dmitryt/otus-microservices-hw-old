@@ -21,7 +21,7 @@ func init() {
 			),
 		),
 		beego.NSGet("/health", func(ctx *context.Context) {
-			ctx.Output.JSON(map[string]string{"status": "OK"}, false, false)
+			_ = ctx.Output.JSON(map[string]string{"status": "OK"}, false, false)
 		}),
 	)
 	beego.AddNamespace(ns)

@@ -21,6 +21,8 @@ type UserController struct {
 func prepareError(err error) (result *Response) {
 	var code int
 	var message string
+
+	pqErr, _ := err.(*pq.Error)
 	switch err.(type) {
 	case *strconv.NumError:
 		code = http.StatusBadRequest
@@ -29,7 +31,6 @@ func prepareError(err error) (result *Response) {
 		message = err.Error()
 	case *pq.Error:
 		code = http.StatusBadRequest
-		pqErr, _ := err.(*pq.Error)
 		if pqErr.Constraint != "" {
 			message = pqErr.Detail
 		}

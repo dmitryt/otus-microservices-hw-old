@@ -9,7 +9,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
-var PHONE_REGEXP = regexp.MustCompile(`^(?:(?:\(?(?:00|\+)([1-4]\d\d|[1-9]\d?)\)?)?[\-\.\ \\\/]?)?((?:\(?\d{1,}\)?[\-\.\ \\\/]?){0,})(?:[\-\.\ \\\/]?(?:#|ext\.?|extension|x)[\-\.\ \\\/]?(\d+))?$`)
+var phoneRegexp = regexp.MustCompile(`^(?:(?:\(?(?:00|\+)([1-4]\d\d|[1-9]\d?)\)?)?[\-\.\ \\\/]?)?((?:\(?\d{1,}\)?[\-\.\ \\\/]?){0,})(?:[\-\.\ \\\/]?(?:#|ext\.?|extension|x)[\-\.\ \\\/]?(\d+))?$`)
 
 type DBConfig struct {
 	Host string `mapstructure:"dbhost"`
@@ -19,7 +19,7 @@ type DBConfig struct {
 	Name string `mapstructure:"dbname"`
 }
 
-func readDbConfig() (cfg DBConfig, err error) {
+func readDBConfig() (cfg DBConfig, err error) {
 	input, err := beego.AppConfig.GetSection("db")
 	if err != nil {
 		return
@@ -31,7 +31,7 @@ func readDbConfig() (cfg DBConfig, err error) {
 }
 
 func GetSQLDSN() (cfg string, err error) {
-	c, err := readDbConfig()
+	c, err := readDBConfig()
 	if err != nil {
 		return
 	}
@@ -41,5 +41,5 @@ func GetSQLDSN() (cfg string, err error) {
 }
 
 func ValidatePhone(fl validator.FieldLevel) bool {
-	return PHONE_REGEXP.MatchString(fl.Field().String())
+	return phoneRegexp.MatchString(fl.Field().String())
 }

@@ -2,6 +2,7 @@ package models
 
 import (
 	"encoding/json"
+	"log"
 
 	"github.com/beego/beego/v2/client/orm"
 	"github.com/dmitryt/otus-microservices-hw/hw02_k8s/utils"
@@ -13,7 +14,10 @@ var validate *validator.Validate
 func init() {
 	orm.RegisterModel(new(User))
 	validate = validator.New()
-	validate.RegisterValidation("phone", utils.ValidatePhone)
+	err := validate.RegisterValidation("phone", utils.ValidatePhone)
+	if err != nil {
+		log.Fatal("Error during registering Phone validator", err)
+	}
 }
 
 type User struct {

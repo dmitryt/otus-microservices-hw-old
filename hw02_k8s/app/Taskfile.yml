@@ -24,6 +24,12 @@ tasks:
     cmds:
       - go mod tidy
 
+  lint:
+    dir: "{{.SRC_DIR}}"
+    desc: Lint project
+    cmds:
+      - golangci-lint run
+
   dev:
     dir: "{{.SRC_DIR}}"
     desc: Run project for dev(with hotreload)
