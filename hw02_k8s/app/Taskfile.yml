@@ -1,0 +1,63 @@
+version: "3"
+
+vars:
+  BINARY_DIR: tmp
+  SRC_DIR: ./
+  CHARTS_DIR: k8s/charts
+  PROJECT_NAME: hw02-k8s-service
+  PACKAGE_NAME: greml1n/otus-microservices-hw02
+  VERSION: v0.0.1
+  MIGRATOR_DIR: ../migrator
+  MIGRATOR_PACKAGE_NAME: greml1n/otus-microservices-hw02-migrator
+  MIGRATOR_VERSION: v0.0.1
+
+tasks:
+  build:
+    dir: "{{.SRC_DIR}}"
+    desc: Build project
+    cmds:
+      - mkdir -p {{.BINARY_DIR}} && go build -o {{.BINARY_DIR}} ./...
+
+  tidy:
+    dir: "{{.SRC_DIR}}"
+    desc: Tidy project
+    cmds:
+      - go mod tidy
+
+  lint:
+    dir: "{{.SRC_DIR}}"
+    desc: Lint project
+    cmds:
+      - golangci-lint run
+
+  dev:
+    dir: "{{.SRC_DIR}}"
+    desc: Run project for dev(with hotreload)
+    cmds:
+      - bee run -main=cmd/{{.PROJECT_NAME}}/main.go {{.PROJECT_NAME}}
+
+  push:
+    dir: "{{.SRC_DIR}}"
+    desc: Push docker package
+    cmds:
+      - docker build -t "{{.PACKAGE_NAME}}:{{.VERSION}}" -t "{{.PACKAGE_NAME}}:latest" --build-arg RUN_MODE=prod .
+      - docker push -a "{{.PACKAGE_NAME}}"
+
+  push_migrator:
+    dir: "{{.MIGRATOR_DIR}}"
+    desc: Push docker migrator package
+    cmds:
+      - docker build -t "{{.MIGRATOR_PACKAGE_NAME}}:{{.MIGRATOR_VERSION}}" -t "{{.MIGRATOR_PACKAGE_NAME}}:latest" -f {{.MIGRATOR_DIR}}/Dockerfile {{.MIGRATOR_DIR}}
+      - docker push -a "{{.MIGRATOR_PACKAGE_NAME}}"
+
+  helm:install:
+    dir: "{{.CHARTS_DIR}}/{{.PROJECT_NAME}}"
+    desc: Install chart
+    cmds:
+      - helm install -f values.yaml {{.PROJECT_NAME}} .
+
+  helm:uninstall:
+    dir: "{{.CHARTS_DIR}}/{{.PROJECT_NAME}}"
+    desc: Uninstall chart
+    cmds:
+      - helm uninstall {{.PROJECT_NAME}}
